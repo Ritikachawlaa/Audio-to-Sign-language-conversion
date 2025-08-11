@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+<video width="500" height="380" class="center" autoplay loop>
+  <source src= "{% static 'Hello.mp4' %}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+	<div class="form-style" align="middle" >
+	<a href="{% url 'animation' %}"><button class="button">Click to Start</button></a>
+	</div>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>VANI</title>
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css2?family=Port+Lligat+Sans&display=swap" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="home.css">
+</head>
+    
+<body>
+   
+    <nav class="nav">
+        <div class="logo">
+            <img src="Picsart_24-12-27_22-50-02-675.png" alt="VANI Logo">
+            
+            
+        </div>
+        <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+
+    
+    <main>
+        <h2>Choose your preference</h2>
+        <div class="options">
+            
+            <a id="blue" href="sign_to_speech.html"> <button class="option-button" >
+                
+                 <span class="icon"><i id="a" class="fa-solid fa-camera-retro"></i></span>
+                Sign to Text 
+                <span class="arrow"><i id="a" class="fa-solid fa-arrow-right"></i></span> 
+            </button> </a>
+
+            
+            <a id="blue" href="speech_to_sign.html"> <button class="option-button">
+                <span class="icon"><i id="a" class="fa-regular fa-comment"></i></span>
+                Text to Sign
+                <span class="arrow"><i id="a" class="fa-solid fa-arrow-right"></i></span>
+            </button></a>
+        </div>
+    </main>
+
+    <scriptdocument.addEventListener("DOMContentLoaded", () => {
+        const buttons = document.querySelectorAll(".option-button");
+    
+        // Redirect for "Sign to Text" button
+        buttons[0].addEventListener("click", () => {
+            window.location.href = "C:\Users\Bibhanshu\Documents\navonmesh\VAANI\sign-to-speech.html"; // Redirect to Sign-to-Text page
+        });
+    
+        // Redirect for "Text to Sign" button
+        buttons[1].addEventListener("click", () => {
+            window.location.href = "speech_to_sign.html"; // Redirect to Text-to-Sign page
+        });
+    });
+     </script>
+     <style>body {
+        background-image: url(WhatsApp\ Image\ 2024-12-28\ at\ 22.52.55_f19c3825.jpg);
+        background-size: cover;
+    }
+    
+    .x {
+        width: 500px;
+        height: 500px;
+        background-color: rgb(245, 237, 237);
+        opacity: 0.3;
+        position: absolute;
+        top: 150px;
+        left: 500px;
+        
+    }
+    
+    .y {
+        width: 600px;
+        height: 400px;
+        position: absolute;
+        top: 300px;
+        left: 600px;
+    
+    }
+    
+    h1 {
+        color: rgb(7, 7, 7);
+        margin-left: 210px;
+        margin-top: 70px;
+    }
+    
+    .i {
+        height: 40px;
+        width: 300px;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid;
+        border-color: aliceblue;
+    }
+    
+    .btn {
+        margin-top: 20px;
+        margin-left: 20px;
+        width: 250px;
+        background-color: white;
+        height: 40px;
+    }
+    
+    .c {
+        color: rgb(18, 18, 18);
+    }
+    
+    .i::placeholder {
+        color: rgb(0, 0, 0);
+    }
+    
+    img {
+        height: 90px;
+        border-radius: 50%;
+        position: absolute;
+        top: -200px;
+        left: 120px;
+        border: 5px solid white;
+        border-color: aliceblue;
+    }
+    .logo
+    {
+        height: 200px;
+        width:px;
+        margin-top: 180px;
+        border: none;
+        margin-left:-100px;
+    
+    
+    }
+    .link
+    {
+      color: green;  
+      margin-left: 20px;
+    }</style>
+</body>
+</html>
+
+{% endblock %}

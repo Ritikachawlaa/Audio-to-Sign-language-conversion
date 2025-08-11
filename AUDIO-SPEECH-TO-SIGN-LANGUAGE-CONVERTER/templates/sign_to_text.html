@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2 align="center">Sign Language Recognition</h2>
+    <div class="sign-to-text">
+        <button onclick="openSignLanguage()" class="sign-btn">Start Camera</button>
+    </div>
+
+    <div id="signLanguageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSignLanguage()">&times;</span>
+            <h2>Sign Language Recognition</h2>
+            <div id="videoContainer">
+                <video id="videoFeed" autoplay playsinline></video>
+                <canvas id="videoCanvas" style="display: none;"></canvas>
+            </div>
+            <p>Current Character: <span id="prediction"></span></p>
+            <p>Current Text: <span id="text"></span></p>
+            <div id="suggestions"></div>
+            <button onclick="clearText()" class="action-btn">Clear Text</button>
+            <button onclick="speakText()" class="action-btn">Speak</button>
+        </div>
+        <div class="text-to-sign">
+            <h2>Text to Sign</h2>
+            <form method="POST" id="textForm">
+                {% csrf_token %}
+                <input type="text" name="sen" placeholder="Enter text here" required>
+                <button type="submit" class="sign-btn">Convert to Sign</button>
+            </form>
+        
+            {% if animations %}
+                <div class="animations">
+                    <h3>Animations:</h3>
+                    {% for animation in animations %}
+                        <video width="320" height="240" controls>
+                            <source src="{% static animation %}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No animations available for the given text.</p>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+
+<style>
+.container {
+    padding: 20px;
+    text-align: center;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+    border-radius: 10px;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: black;
+}
+
+#videoContainer {
+    width: 100%;
+    max-width: 640px;
+    margin: 20px auto;
+    position: relative;
+}
+
+#videoFeed, #videoCanvas {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+}
+
+.sign-btn {
+    margin: 20px;
+    padding: 15px 30px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.sign-btn:hover {
+    background-color: #45a049;
+}
+
+.action-btn {
+    margin: 10px;
+    padding: 10px 20px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    background-color: #007399;
+}
+
+#suggestions {
+    margin: 15px 0;
+}
+
+#suggestions button {
+    margin: 5px;
+    padding: 8px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#suggestions button:hover {
+    background-color: #e9ecef;
+}
+</style>
+
+<script>
+let videoStream = null;
+
+function openSignLanguage() {
+    document.getElementById('signLanguageModal').style.display = 'block';
+    startVideoFeed();
+}
+
+function closeSignLanguage() {
+    document.getElementById('signLanguageModal').style.display = 'none';
+    if (window.evtSource) {
+        window.evtSource.close();
+    }
+    stopVideoFeed();
+}
+
+function stopVideoFeed() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
+}
+
+function startVideoFeed() {
+    const video = document.getElementById('videoFeed');
+    const constraints = {
+        video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+        }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+            videoStream = stream;
+            video.srcObject = stream;
+            video.play()
+                .then(() => {
+                    console.log('Video playback started');
+                    startEventSource();
+                })
+                .catch(err => {
+                    console.error('Error playing video:', err);
+                });
+        })
+        .catch(function(err) {
+            console.error('Error accessing camera:', err);
+            alert('Error accessing camera: ' + err.message);
+        });
+}
+
+function startEventSource() {
+    window.evtSource = new EventSource("/sign-language/video_feed/");
+    
+    window.evtSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        
+        document.getElementById('prediction').textContent = data.prediction || '';
+        document.getElementById('text').textContent = data.text || '';
+        updateSuggestions(data.suggestions || []);
+    };
+
+    window.evtSource.onerror = function(err) {
+        console.error('EventSource error:', err);
+    };
+}
+
+function updateSuggestions(suggestions) {
+    const suggestionsDiv = document.getElementById('suggestions');
+    suggestionsDiv.innerHTML = '';
+    suggestions.forEach(suggestion => {
+        if(suggestion) {
+            const button = document.createElement('button');
+            button.textContent = suggestion;
+            button.onclick = () => selectSuggestion(suggestion);
+            suggestionsDiv.appendChild(button);
+        }
+    });
+}
+
+function clearText() {
+    fetch('/sign-language/clear_text/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Clean up when the page is closed
+window.addEventListener('beforeunload', () => {
+    stopVideoFeed();
+    if (window.evtSource) {
+        window.evtSource.close();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Language Recognition</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Sign Language Recognition</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Video Feed -->
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <h2 class="text-xl font-semibold mb-4">Camera Feed</h2>
+                <img id="videoFeed" src="" alt="Video feed" class="w-full rounded">
+            </div>
+            
+            <!-- Recognition Results -->
+            <div class="bg-white rounded-lg shadow-lg p-4">
+                <h2 class="text-xl font-semibold mb-4">Recognition Results</h2>
+                <div class="mb-4">
+                    <p class="font-medium">Current Character:</p>
+                    <p id="currentChar" class="text-2xl"></p>
+                </div>
+                <div class="mb-4">
+                    <p class="font-medium">Current Text:</p>
+                    <p id="currentText" class="text-xl"></p>
+                </div>
+                <div class="mb-4">
+                    <p class="font-medium">Word Suggestions:</p>
+                    <div id="suggestions" class="flex flex-wrap gap-2">
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button onclick="speak()" class="bg-blue-500 text-white px-4 py-2 rounded">
+                        Speak
+                    </button>
+                    <button onclick="clearText()" class="bg-red-500 text-white px-4 py-2 rounded">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const evtSource = new EventSource("{% url 'video_feed' %}");
+        
+        evtSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            document.getElementById('videoFeed').src = data:image/jpeg;base64,${data.frame};
+            document.getElementById('currentChar').textContent = data.prediction;
+            document.getElementById('currentText').textContent = data.text;
+            
+            const suggestionsDiv = document.getElementById('suggestions');
+            suggestionsDiv.innerHTML = '';
+            data.suggestions.forEach(suggestion => {
+                if (suggestion) {
+                    const button = document.createElement('button');
+                    button.className = 'bg-gray-200 px-3 py-1 rounded';
+                    button.textContent = suggestion;
+                    button.onclick = () => selectSuggestion(suggestion);
+                    suggestionsDiv.appendChild(button);
+                }
+            });
+        };
+        
+        function speak() {
+            const text = document.getElementById('currentText').textContent;
+            const utterance = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(utterance);
+        }
+        
+        function clearText() {
+            fetch("{% url 'clear_text' %}", { method: 'POST' });
+        }
+        
+        function selectSuggestion(word) {
+            fetch("{% url 'select_suggestion' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ word: word })
+            });
+        }
+    </script>
+</body>
+</html>

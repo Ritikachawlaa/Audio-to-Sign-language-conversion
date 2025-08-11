@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="landing-container">
+    <h1 class="main-title">Sign Language Converter</h1>
+    <div class="button-container">
+        <a href="{% url 'text_to_sign' %}" class="feature-button">
+            <div class="feature-content">
+                <img src="{% static 'text-to-sign-icon.png' %}" alt="Text to Sign" class="feature-icon">
+                <h2>Text to Sign</h2>
+                <p>Convert text or speech into sign language animations</p>
+            </div>
+        </a>
+        
+        <a href="{% url 'sign_to_text' %}" class="feature-button">
+            <div class="feature-content">
+                <img src="{% static 'sign-to-text-icon.png' %}" alt="Sign to Text" class="feature-icon">
+                <h2>Sign to Text</h2>
+                <p>Convert sign language gestures into text using your camera</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+.landing-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.main-title {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.button-container {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 1200px;
+}
+
+.feature-button {
+    width: 300px;
+    height: 350px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease;
+}
+
+.feature-content {
+    height: 100%;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature-button:hover .feature-content {
+    transform: translateY(-10px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.feature-content h2 {
+    font-size: 1.5rem;
+    margin: 10px 0;
+    color: #333;
+}
+
+.feature-content p {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .button-container {
+        gap: 20px;
+    }
+    
+    .feature-button {
+        width: 280px;
+        height: 320px;
+    }
+    
+    .main-title {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+}
+</style>
+{% endblock %}

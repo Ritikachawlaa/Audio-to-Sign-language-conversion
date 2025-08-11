@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="split left">
+    <h2 align="center">Enter Text or Use Mic</h2>
+    <br>
+    <form action="" method="post" align="left">
+        {% csrf_token %}
+        <input type="text" name="sen" class="mytext" id="speechToText" placeholder="Enter text here">
+        <button type="button" name="button" class="mic" onclick="record()">
+            <img src="{% static 'mic3.png' %}" height="32px" width="38px" />
+        </button>
+        <input type="submit" name="submit" class="submit" value="Submit">
+    </form>
+    <br>
+    <table cellspacing="20px">
+        <tr>
+            <td class="td">The text you entered is:</td>
+            <td class="td">{{ text }}</td>
+        </tr>
+        <tr>
+            <td class="td">Key words in the sentence:</td>
+            <td class="td">
+                <ul id="list" align="center">
+                    {% for word in words %}
+                    <li id="word-{{ forloop.counter }}" style="margin-right: 8px">{{ word }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="split right">
+    <h2 align="center">Sign Language Animation</h2>
+    <div style="text-align:center">
+        <button class="submit" onclick="playPause()">Play/Pause</button>
+        <video id="videoPlayer" width="600" height="350" preload="auto">
+            <source src="" type="video/mp4">
+            Your browser does not support HTML5 video.
+        </video>
+    </div>
+</div>
+
+<script>
+    // Speech-to-text functionality using Web Speech API
+    function record() {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-IN';
+
+        recognition.onresult = function(event) {
+            document.getElementById('speechToText').value = event.results[0][0].transcript;
+        };
+        recognition.start();
+    }
+
+    let videoIndex = 0; // Current video index
+    const videoPlayer = document.getElementById('videoPlayer');
+    const wordList = document.getElementById('list').getElementsByTagName('li');
+
+    function playVideos() {
+        if (videoIndex >= wordList.length) {
+            console.log("All videos played.");
+            videoIndex = 0; // Reset index for replay
+            return;
+        }
+
+        // Set video source and play
+        const word = wordList[videoIndex].textContent.trim();
+        videoPlayer.src = `/static/${word}.mp4`;
+        videoPlayer.load();
+        videoPlayer.play();
+
+        // Highlight the current word
+        for (let i = 0; i < wordList.length; i++) {
+            wordList[i].style.color = i === videoIndex ? "#09edc7" : "#feda6a";
+            wordList[i].style.fontSize = i === videoIndex ? "xx-large" : "20px";
+        }
+
+        videoPlayer.onended = function() {
+            videoIndex++;
+            playVideos();
+        };
+    }
+
+    function playPause() {
+        if (videoPlayer.paused) {
+            playVideos();
+        } else {
+            videoPlayer.pause();
+        }
+    }
+</script>
+{% endblock %}

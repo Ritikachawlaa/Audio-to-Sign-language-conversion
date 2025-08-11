@@ -1,0 +1,168 @@
+<!-- Add this where you want the sign language option to appear in animation.html -->
+<div class="container">
+    <!-- Your existing text-to-sign converter -->
+    <div class="text-to-sign">
+        <!-- Keep your existing form -->
+        <form method="POST">
+            {% csrf_token %}
+            <label for="sen">Enter Text:</label>
+            <input type="text" name="sen" id="sen">
+            <button type="submit">Convert to Sign</button>
+        </form>
+    </div>
+
+    <!-- Add new sign-to-text section -->
+    <div class="sign-to-text">
+        <h3>Or Convert Sign to Text</h3>
+        <button onclick="openSignLanguage()" class="sign-btn">Open Sign Language Recognition</button>
+    </div>
+
+    <!-- Add this modal/popup for sign language -->
+    <div id="signLanguageModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeSignLanguage()">&times;</span>
+            <h2>Sign Language Recognition</h2>
+            <div id="videoContainer">
+                <video id="videoFeed" autoplay></video>
+            </div>
+            <p>Current Character: <span id="prediction"></span></p>
+            <p>Current Text: <span id="text"></span></p>
+            <div id="suggestions"></div>
+            <button onclick="clearText()">Clear Text</button>
+            <button onclick="speakText()">Speak</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add this JavaScript at the bottom of your animation.html -->
+<script>
+function openSignLanguage() {
+    document.getElementById('signLanguageModal').style.display = 'block';
+    startVideoFeed();
+}
+
+function closeSignLanguage() {
+    document.getElementById('signLanguageModal').style.display = 'none';
+    if (window.evtSource) {
+        window.evtSource.close();
+    }
+}
+
+function startVideoFeed() {
+    // Request camera permission
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            window.evtSource = new EventSource("/sign-language/video_feed/");
+            
+            window.evtSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                // Update video frame
+                const img = document.createElement('img');
+                img.src = 'data:image/jpeg;base64,' + data.frame;
+                const video = document.getElementById('videoFeed');
+                video.replaceWith(img);
+                img.id = 'videoFeed';
+                
+                // Update prediction and text
+                document.getElementById('prediction').textContent = data.prediction;
+                document.getElementById('text').textContent = data.text;
+                
+                // Update suggestions
+                updateSuggestions(data.suggestions);
+            };
+        })
+        .catch(function(err) {
+            alert('Error accessing camera: ' + err);
+        });
+}
+
+function updateSuggestions(suggestions) {
+    const suggestionsDiv = document.getElementById('suggestions');
+    suggestionsDiv.innerHTML = '';
+    suggestions.forEach(suggestion => {
+        if(suggestion) {
+            const button = document.createElement('button');
+            button.textContent = suggestion;
+            button.onclick = () => selectSuggestion(suggestion);
+            suggestionsDiv.appendChild(button);
+        }
+    });
+}
+
+function clearText() {
+    fetch('/sign-language/clear_text/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    });
+}
+
+// Add this function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<!-- Add this CSS to style your modal -->
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#videoContainer {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+#videoFeed {
+    width: 100%;
+}
+
+.sign-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+</style>
