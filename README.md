@@ -1,6 +1,6 @@
-# Audio to Sign Language Conversion App
+# Audio to Sign Language Conversion 
 
-An application that converts spoken audio into sign language to assist communication for hearing-impaired individuals. The app captures real-time audio input, processes it, and visually displays corresponding sign language gestures.
+It converts spoken audio into sign language to assist communication for hearing-impaired individuals. It captures real-time audio input, processes it, and visually displays corresponding sign language gestures.
 
 ---
 
